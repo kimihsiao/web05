@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<meta http-equiv="x-ua-compatible" content="IE=edge, chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSS -->
+  <link href="css/normalize_reset.css" rel="stylesheet" type="text/css">
+  <link href="css/colorbox.css" rel="stylesheet" type="text/css">
+  <link href="bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link href="font-awesome/css/font-awesome.min.css"  rel="stylesheet" type="text/css">
+  <link href="css/index.css" rel="stylesheet" type="text/css">
+	<!-- JS -->
+  <script src="js/jquery-1.11.3.min.js"></script>
+  <script src="js/angular.min.js"></script>
+  <script src="js/jquery.colorbox.js"></script>
+  <script src="js/moment.js"></script>
+  <script src="js/lodash.core.min.js"></script>
+  <script>
+    var app = angular.module("myShoppingList", []); 
+    app.controller("myCtrl", function($scope, $http) {
+      var today = moment(new Date()).format("YYYY-MM-DD");
+      
+      var localStorageProducts = JSON.parse(localStorage["localStorageProducts"]);
+
+      $scope.allProducts = localStorageProducts || [
+        {title:'一二三四五六七八九零一二三四五六七八九零',content:'一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零', time: '2017-01-01'},
+        {title:'title01',content:'content_001',time: '2017-02-02'},
+        {title:'title02',content:'content_002',time: '2017-03-03'},
+        {title:'title03',content:'content_003',time: '2017-04-04'}
+      ];
+      
+      
+      // localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+      // var localStorageProducts = JSON.parse(localStorage["localStorageProducts"]);
+
+      $scope.products = [...$scope.allProducts];
+
+      // console.log('localStorageProducts', localStorageProducts);
+      // $http.get('products.json').then(function(res){
+      //   $scope.products = res.data;                
+      // });
+
+      $scope.addTitle = "";
+      $scope.addContent = "";
+      $scope.editTitle = "";
+      $scope.editContent = "";
+      $scope.index = "";
+      $scope.showBtn = false;
+      $scope.searchTitle = "";
+      $scope.bgcolor = [];
+
+      $scope.addItem = function () {
+        init();
+        let _addItem = {
+          title:$scope.addTitle,
+          content:$scope.addContent,
+          time:today,
+        }
+        $scope.products.push(_addItem);
+        $scope.bgcolor.push(bgColorItem());
+        $scope.allProducts = [...$scope.products];
+        localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+
+        $scope.addTitle = "";
+        $scope.addContent = "";
+      }
+      $scope.removeItem = function (x) {
+          $scope.errortext = "";    
+          $scope.products.splice(x, 1);
+          $scope.allProducts = [...$scope.products];
+          localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+      }
+      $scope.showItem = function (i) {
+        init();
+        if(i+1){
+          $scope.showBtn = true;
+          $scope.editTitle = $scope.products[i].title;
+          $scope.editContent = $scope.products[i].content;
+          return $scope.index = i
+        } else {
+          $scope.showBtn =  false;
+          $scope.addTitle = "";
+          $scope.addContent = "";
+        }
+      }
+      $scope.editItem = function (i) {
+        $scope.products[i].title = $scope.editTitle;
+        $scope.products[i].content = $scope.editContent;
+        $scope.products[i].time = today;
+        $scope.allProducts = [...$scope.products];
+        localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+      }
+      $scope.searchItem = function () {
+        var searchList = _.filter($scope.products, function(v) { 
+          console.log(v);
+          var _showitem = _.includes(v.title, $scope.searchTitle); 
+          console.log(_showitem);
+          return _showitem;
+          });
+        $scope.products = searchList;
+      }
+      $scope.cancelItem = function () {
+        $scope.searchTitle = "";
+        $scope.products = localStorageProducts;
+      }
+      $scope.upItem = function(index) {
+        if (index > 0) {
+          tmp = $scope.products[index - 1];
+          $scope.products[index - 1] = $scope.products[index];
+          $scope.products[index] = tmp;
+          $scope.allProducts = [...$scope.products];
+          localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+        }
+      }
+      $scope.downItem = function(index) {
+        if (index < $scope.products.length - 1) {
+          tmp = $scope.products[index + 1];
+          $scope.products[index + 1] = $scope.products[index];
+          $scope.products[index] = tmp;
+          $scope.allProducts = [...$scope.products];
+          localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
+        }
+      }
+      
+      // lightbox
+      function init(){
+        $("#colorboxJS, #editJS").colorbox({
+          inline:true, 
+          width:"500px"
+        });
+      }
+
+      // bgcolor
+      randomBgColor();
+      
+      function bgColorItem(){
+        return _.sample(['alert-success', 'alert-info', 'alert-warning', 'alert-danger']);
+      }
+      function randomBgColor(){
+        var bgColorList = _.times(localStorageProducts.length);
+        console.log('bgColorList', bgColorList);
+        for (var i = 0, len = bgColorList.length; i < len; i++) {
+          _.fill(bgColorList, bgColorItem(), i, i+1);
+          
+        }
+        $scope.bgcolor = bgColorList;
+      }
+
+      // drag and drop
+      /**
+      dragDrop();
+      function dragDrop(){
+        let items = document.querySelectorAll('#contentJs > li')
+
+        items.forEach(item => {
+          $(item).prop('draggable', true)
+          item.addEventListener('dragstart', dragStart)
+          item.addEventListener('drop', dropped)
+          item.addEventListener('dragenter', cancelDefault)
+          item.addEventListener('dragover', cancelDefault)
+        })
+
+        function dragStart (e) {
+          var index = $(e.target).index()
+          e.dataTransfer.setData('text/plain', index)
+        }
+
+        function dropped (e) {
+          cancelDefault(e)
+          
+          // get new and old index
+          let oldIndex = e.dataTransfer.getData('text/plain')
+          let target = $(e.target)
+          let newIndex = target.index()
+          
+          // remove dropped items at old place
+          let dropped = $(this).parent().children().eq(oldIndex).remove()
+
+          // insert the dropped items at new place
+          if (newIndex < oldIndex) {
+            target.before(dropped)
+          } else {
+            target.after(dropped)
+          }
+        }
+
+        function cancelDefault (e) {
+          e.preventDefault()
+          e.stopPropagation()
+          return false
+        }
+      }
+      **/
+    });
+  </script>
+</head>
+<body>
+  <div class="wrapper container">
+    <div class="row">
+      <div class="rightSide" ng-app="myShoppingList" ng-cloak ng-controller="myCtrl">
+        <a href="#inputBox" ng-click="showItem()" class="addBtn" id="colorboxJS">Add</a>
+        <div class="searchBox">
+            <form name="searchForm">
+                <input placeholder="search title" ng-model="searchTitle" class="">
+                <button ng-click="searchItem()" class="btn btn-default">Seacrh</button>
+                <button ng-click="cancelItem()" class="btn btn-default">Cancel</button>
+            </form>
+        </div>
+        <div>
+          <ul class="content" id="contentJs">        
+            <li class="indexList {{bgcolor[$index]}}" ng-repeat="x in products track by $index">
+              <div class="indexList_content">
+                <div class="text">{{x.title}}</div>
+                <div class="text_content">{{x.content}}</div>
+                <div class="text_time">{{x.time}}</div>
+                <span ng-click="removeItem($index)" class="open">
+                    <i class="fa fa-times-circle" aria-hidden="true"></i>
+                </span>
+                <a href="#editBox" ng-click="showItem($index)" class="edit" id="editJS">
+                  <i class="fa fa-pencil-square" aria-hidden="true"></i>
+                </a>
+                <span ng-click="upItem($index)" class="up">
+                    <i class="fa fa-arrow-circle-up" aria-hidden="true"></i>
+                </span>
+                <span ng-click="downItem($index)" class="down">
+                    <i class="fa fa-arrow-circle-down" aria-hidden="true"></i>
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div style='display:none'>
+          <div id="inputBox">
+            <form name="addForm">
+              <div class="inputBox_title">
+                <input placeholder="Add title" ng-model="addTitle" class="">
+              </div>
+              <div class="inputBox_content">
+                <textarea cols="50" rows="5" placeholder="Add content" ng-model="addContent" class=""></textarea>
+              </div>
+              <div class="inputBox_btn">
+                <button ng-click="addItem()" class="btn btn-primary" ng-disabled="!addTitle">Add</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div style='display:none'>
+            <div id="editBox">
+              <form name="editForm">
+                  <div class="inputBox_title">
+                    <input placeholder="Edit title" ng-model="editTitle" class="">
+                  </div>
+                  <div class="inputBox_content">
+                    <textarea cols="50" rows="5" placeholder="Edit content" ng-model="editContent" class=""></textarea>
+                  </div>
+                  <div class="inputBox_btn">
+                    <button ng-click="editItem(index)" class="btn btn-primary">Save</button>
+                  </div>
+                </form>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+  <!-- <script>
+    $(function() {
+      Examples of how to assign the Colorbox event to elements
+      $("#colorboxJS, #editItem").colorbox({
+        inline:true, 
+        width:"500px"
+      });
+    });
+  </script> -->
+</body>
+</html>
