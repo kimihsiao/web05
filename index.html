@@ -22,25 +22,19 @@
     app.controller("myCtrl", function($scope, $http) {
       var today = moment(new Date()).format("YYYY-MM-DD");
       
-      var localStorageProducts = JSON.parse(localStorage["localStorageProducts"]);
-
-      $scope.allProducts = localStorageProducts || [
-        {title:'一二三四五六七八九零一二三四五六七八九零',content:'一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零', time: '2017-01-01'},
-        {title:'title01',content:'content_001',time: '2017-02-02'},
-        {title:'title02',content:'content_002',time: '2017-03-03'},
-        {title:'title03',content:'content_003',time: '2017-04-04'}
+      var localStorageProducts = JSON.parse(localStorage["localStorageProducts"]) || [
+        { title: '一二三四五六七八九零一二三四五六七八九零', content: '一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零一二三四五六七八九零', time: '2017-01-01' },
+        { title: 'title01', content: 'content_001', time: '2017-02-02' },
+        { title: 'title02', content: 'content_002', time: '2017-03-03' },
+        { title: 'title03', content: 'content_003', time: '2017-04-04' }
       ];
-      
+
+      $scope.allProducts = localStorageProducts;
       
       // localStorage["localStorageProducts"] = JSON.stringify([...$scope.allProducts]);
       // var localStorageProducts = JSON.parse(localStorage["localStorageProducts"]);
 
       $scope.products = [...$scope.allProducts];
-
-      // console.log('localStorageProducts', localStorageProducts);
-      // $http.get('products.json').then(function(res){
-      //   $scope.products = res.data;                
-      // });
 
       $scope.addTitle = "";
       $scope.addContent = "";
